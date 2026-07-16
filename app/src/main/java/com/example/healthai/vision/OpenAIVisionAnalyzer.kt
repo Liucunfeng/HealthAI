@@ -106,7 +106,18 @@ class OpenAIVisionAnalyzer(
             addProperty("model", model)
             add("messages", messages)
             add("response_format", JsonObject().apply { addProperty("type", "json_object") })
-            addProperty("temperature", 0.4)
+        }
+
+        // Kimi k2.6 / k2.5 对 temperature / thinking 有严格限制：
+        //   思考模式 temperature 固定 1.0，非思考模式固定 0.6，其它任何值都会直接 400。
+        // 因此对这些模型统一「禁用思考 + temperature 0.6」：响应更快、更省 token，
+        // 也避免默认开启的 thinking 带来不确定的推理输出。
+        // 其它 OpenAI 兼容模型（如旧版 moonshot-v1-8k-vision-preview）保持原温度 0.4，且不传 thinking。
+        if (model.contains("k2.6", ignoreCase = true) || model.contains("k2.5", ignoreCase = true)) {
+            body.add("thinking", JsonObject().apply { addProperty("type", "disabled") })
+            body.addProperty("temperature", 0.6)
+        } else {
+            body.addProperty("temperature", 0.4)
         }
 
         val resp = try {
@@ -128,10 +139,26 @@ class OpenAIVisionAnalyzer(
             throw RuntimeException("视觉 API 返回错误：$msg")
         }
 
-        return resp.getAsJsonArray("choices")
+        val rawContent = resp.getAsJsonArray("choices")
             .get(0).asJsonObject
             .getAsJsonObject("message")
             .get("content").asString
+        return sanitizeJson(rawContent)
+    }
+
+    /**
+     * 容错：Kimi 等模型在 JSON Mode 下有时仍会用 ```json ... ``` 包裹输出，
+     * Gson 直接解析会失败。这里把 markdown 代码块包裹剥掉，只保留纯 JSON 文本。
+     */
+    private fun sanitizeJson(raw: String): String {
+        var s = raw.trim()
+        if (s.startsWith("```")) {
+            val firstNewline = s.indexOf('\n')
+            if (firstNewline >= 0) s = s.substring(firstNewline + 1)
+            if (s.endsWith("```")) s = s.removeSuffix("```")
+            s = s.trim()
+        }
+        return s
     }
 
     private fun parseBody(json: String): BodyAnalysis {
