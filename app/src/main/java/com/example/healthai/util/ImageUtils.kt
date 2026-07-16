@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
 import java.io.ByteArrayOutputStream
-import kotlin.math.minOf
 
 object ImageUtils {
 
@@ -35,7 +34,9 @@ object ImageUtils {
     private fun scaleDown(src: Bitmap, maxDim: Int): Bitmap {
         val w = src.width
         val h = src.height
-        val ratio = minOf(maxDim.toFloat() / w, maxDim.toFloat() / h)
+        val ratioW = maxDim.toFloat() / w
+        val ratioH = maxDim.toFloat() / h
+        val ratio = if (ratioW < ratioH) ratioW else ratioH
         if (ratio >= 1f) return src
         return Bitmap.createScaledBitmap(src, (w * ratio).toInt(), (h * ratio).toInt(), true)
     }
