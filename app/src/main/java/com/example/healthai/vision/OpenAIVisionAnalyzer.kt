@@ -31,14 +31,20 @@ class OpenAIVisionAnalyzer(
 ) : VisionAnalyzer {
 
     private val endpoint = run {
-        val raw = if (baseUrl.isBlank()) {
+        var raw = if (baseUrl.isBlank()) {
             "https://api.openai.com/v1"
         } else {
-            baseUrl.trimEnd('/')
+            baseUrl.trim().trimEnd('/')
         }
-        // 容错：用户若漏填 /v1（这是最常见的填错方式），自动补上，
+        // 容错 1：用户可能把完整接口地址 https://api.moonshot.cn/v1/chat/completions
+        // 整个粘进 Base 框，先剥掉末尾的 /chat/completions，
+        // 否则会跟 Retrofit 的 @POST("chat/completions") 拼成双路径 → 404。
+        if (raw.endsWith("/chat/completions", ignoreCase = true)) {
+            raw = raw.removeSuffix("/chat/completions").trimEnd('/')
+        }
+        // 容错 2：用户若漏填 /v1（最常见的填错），自动补上，
         // 避免请求落到 https://api.moonshot.cn/chat/completions 直接 404。
-        val normalized = if (raw.endsWith("/v1") || raw.contains("/chat/completions")) {
+        val normalized = if (raw.endsWith("/v1", ignoreCase = true)) {
             raw
         } else {
             "$raw/v1"
