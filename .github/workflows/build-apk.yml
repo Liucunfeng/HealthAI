@@ -22,18 +22,25 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      # 不依赖第三方 action：用官方 commandline-tools 手动安装 Android SDK，
+      # 避免第三方 action 的 Node 20 弃用警告，也避免 runner 预装 SDK 缺包。
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK packages
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          export ANDROID_HOME=$HOME/android-sdk
+          echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          curl -fsSL https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -o cmdline-tools.zip
+          unzip -q cmdline-tools.zip -d $ANDROID_HOME/cmdline-tools
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
+          sdkmanager --sdk_root=$ANDROID_HOME "platforms;android-34" "build-tools;34.0.0" "platform-tools"
 
       # 不依赖仓库里的 gradlew：指定 gradle-version 后，
       # gradle-build-action 会下载对应 Gradle 发行版来构建。
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@v3
+        uses: gradle/gradle-build-action@v4
         with:
           gradle-version: 8.9
           arguments: assembleDebug
