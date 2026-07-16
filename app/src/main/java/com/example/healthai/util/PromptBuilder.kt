@@ -16,7 +16,7 @@ object PromptBuilder {
         if (profile == null || profile.isEmpty()) {
             return "用户暂未提供身体档案，请基于照片给出通用建议。"
         }
-        val bmi = profile.bmi()?.let { "BMI 约 %.1f" % it } ?: ""
+        val bmi = profile.bmi()?.let { "BMI 约 %.1f".format(it) } ?: ""
         return """
             用户身体档案：
             - 性别：${if (profile.gender == "male") "男" else "女"}

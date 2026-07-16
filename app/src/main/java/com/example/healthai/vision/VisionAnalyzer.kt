@@ -13,17 +13,3 @@ interface VisionAnalyzer {
     suspend fun analyzeBody(imageBase64: String, profile: UserProfile?): BodyAnalysis
     suspend fun analyzeFood(imageBase64: String, profile: UserProfile?): FoodAnalysis
 }
-
-/**
- * 根据本地保存的设置创建分析器。
- * 未配置 API Key 时返回 null，调用方应提示用户先去「设置」页填写。
- */
-object VisionAnalyzerFactory {
-    fun create(context: Context): VisionAnalyzer? {
-        val key = AppPreferences.getApiKey(context)
-        if (key.isBlank()) return null
-        val base = AppPreferences.getApiBase(context)
-        val model = AppPreferences.getModel(context)
-        return OpenAIVisionAnalyzer(apiKey = key, baseUrl = base, model = model)
-    }
-}
