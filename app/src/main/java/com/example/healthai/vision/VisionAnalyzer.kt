@@ -1,8 +1,6 @@
 package com.example.healthai.vision
 
-import com.example.healthai.data.AppPreferences
 import com.example.healthai.data.UserProfile
-import android.content.Context
 
 /**
  * 视觉分析的统一接口。身材分析与食物分析都通过它完成，
