@@ -40,7 +40,7 @@ jobs:
       # 不依赖仓库里的 gradlew：指定 gradle-version 后，
       # gradle-build-action 会下载对应 Gradle 发行版来构建。
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@v4
+        uses: gradle/gradle-build-action@v3
         with:
           gradle-version: 8.9
           arguments: assembleDebug
