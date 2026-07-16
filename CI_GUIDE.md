@@ -82,7 +82,7 @@ GitHub 自 2021-08 起**禁止用登录密码做 Git 操作**。若在 `Password
 **这是弃用警告，不是构建错误**，不会导致失败。GitHub 自 2025-09 起把 Runner 上的 Node 20 强制换成 Node 24，仍 target Node 20 的 action 会被自动兼容运行，只是打印这条提醒。
 
 - 只要 workflow run 的状态是绿色 ✅、且底部能下载 `app-debug` 这个 Artifact，**直接忽略它**，解压装到手机即可。
-- 若想日志干净，本仓库工作流已做处理：移除第三方 `android-actions/setup-android`（改用官方 `cmdline-tools` 手动装 SDK）、`gradle-build-action` 升到 `v4`。剩下的 `checkout@v4` / `setup-java@v4` 是 GitHub 官方 action，其 Node 20 提醒无害，待官方发补丁即可消除，无需你处理。
+- 若想日志干净，本仓库工作流已做处理：移除第三方 `android-actions/setup-android`（改用官方 `cmdline-tools` 手动装 SDK）。构建步骤使用 `gradle/gradle-build-action@v3`（注意：该 action 没有 v4 版本，`@v4` 会因无法解析版本而报错）。剩下的 `checkout@v4` / `setup-java@v4` / `upload-artifact@v4` 是 GitHub 官方 action，其 Node 20 提醒无害，待官方发补丁即可消除，无需你处理。
 - **真正的失败**表现为某个 step 红色 ❌，且日志里有具体报错（如 `sdkmanager` 失败、`assembleDebug` 编译错误）。那种才需要排查——把红色部分发我即可。
 
 ## 进阶
