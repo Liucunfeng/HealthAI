@@ -11,6 +11,7 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.HttpException
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -29,10 +30,20 @@ class OpenAIVisionAnalyzer(
     private val model: String
 ) : VisionAnalyzer {
 
-    private val endpoint = if (baseUrl.isBlank()) {
-        "https://api.openai.com/v1/"
-    } else {
-        if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+    private val endpoint = run {
+        val raw = if (baseUrl.isBlank()) {
+            "https://api.openai.com/v1"
+        } else {
+            baseUrl.trimEnd('/')
+        }
+        // 容错：用户若漏填 /v1（这是最常见的填错方式），自动补上，
+        // 避免请求落到 https://api.moonshot.cn/chat/completions 直接 404。
+        val normalized = if (raw.endsWith("/v1") || raw.contains("/chat/completions")) {
+            raw
+        } else {
+            "$raw/v1"
+        }
+        if (normalized.endsWith("/")) normalized else "$normalized/"
     }
 
     private val api: OpenAiApi by lazy {
@@ -92,7 +103,19 @@ class OpenAIVisionAnalyzer(
             addProperty("temperature", 0.4)
         }
 
-        val resp = api.chat("Bearer $apiKey", body)
+        val resp = try {
+            api.chat("Bearer $apiKey", body)
+        } catch (e: HttpException) {
+            // 非 2xx（如 401 无效 key、404 地址错、429 限流、400 参数错）会走到这里。
+            // Retrofit 默认不会把错误体解析成 JsonObject，所以必须把 errorBody 读出来，
+            // 否则真实原因会被外层 catch 吞掉，只看到“请检查网络与 API Key”。
+            val errBody = runCatching { e.response()?.errorBody()?.string().orEmpty() }.getOrDefault("")
+            val msg = runCatching {
+                Gson().fromJson(errBody, JsonObject::class.java)
+                    ?.optString("error")?.takeIf { it.isNotBlank() } ?: errBody
+            }.getOrDefault(errBody)
+            throw RuntimeException("视觉 API 请求失败(${e.code()})：${msg.take(300)}")
+        }
 
         if (resp.has("error")) {
             val msg = resp.getAsJsonObject("error").optString("message")

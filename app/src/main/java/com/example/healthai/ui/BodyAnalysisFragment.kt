@@ -130,7 +130,13 @@ class BodyAnalysisFragment : Fragment() {
                     AppDatabase.get(requireContext()).analysisRecordDao().insert(rec)
                 }
             } catch (e: Exception) {
-                Toast.makeText(requireContext(), R.string.error_generic, Toast.LENGTH_LONG).show()
+                android.util.Log.e("HealthAI", "analyze failed", e)
+                val detail = e.message?.takeIf { it.isNotBlank() }
+                Toast.makeText(
+                    requireContext(),
+                    detail?.let { "分析失败：$it" } ?: getString(R.string.error_generic),
+                    Toast.LENGTH_LONG
+                ).show()
             } finally {
                 binding.progress.visibility = View.GONE
                 binding.btnAnalyze.isEnabled = true
