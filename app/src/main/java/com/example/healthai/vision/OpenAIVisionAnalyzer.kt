@@ -1,6 +1,7 @@
 package com.example.healthai.vision
 
 import com.example.healthai.data.UserProfile
+import com.example.healthai.util.PromptBuilder
 import com.example.healthai.util.optArray
 import com.example.healthai.util.optFloat
 import com.example.healthai.util.optInt
