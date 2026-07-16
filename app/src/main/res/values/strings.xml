@@ -1,0 +1,66 @@
+<resources>
+    <string name="app_name">AI 健康助手</string>
+
+    <!-- Bottom nav -->
+    <string name="nav_body">身材</string>
+    <string name="nav_food">食物</string>
+    <string name="nav_profile">我的</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_history">历史</string>
+
+    <!-- Body analysis -->
+    <string name="body_title">身材比例与体质分析</string>
+    <string name="hint_take_photo">拍摄或上传一张全身照</string>
+    <string name="btn_capture">拍照</string>
+    <string name="btn_pick">从相册选择</string>
+    <string name="btn_analyze">分析身材</string>
+    <string name="body_result_placeholder">分析结果将显示在这里</string>
+
+    <!-- Food analysis -->
+    <string name="food_title">食物营养与热量分析</string>
+    <string name="food_result_placeholder">分析结果将显示在这里</string>
+    <string name="btn_analyze_food">分析食物</string>
+
+    <!-- Profile -->
+    <string name="profile_title">我的身体档案</string>
+    <string name="label_height">身高 (cm)</string>
+    <string name="label_weight">体重 (kg)</string>
+    <string name="label_age">年龄</string>
+    <string name="label_gender">性别</string>
+    <string name="label_goal">健康目标</string>
+    <string name="label_activity">活动水平</string>
+    <string name="goal_lose">减脂</string>
+    <string name="goal_maintain">维持</string>
+    <string name="goal_gain">增肌</string>
+    <string name="activity_low">久坐</string>
+    <string name="activity_mid">中等</string>
+    <string name="activity_high">活跃</string>
+    <string name="gender_male">男</string>
+    <string name="gender_female">女</string>
+    <string name="btn_save_profile">保存档案</string>
+    <string name="profile_saved">档案已保存</string>
+    <string name="profile_empty">请先填写身体档案，分析结果会更准确</string>
+
+    <!-- Settings -->
+    <string name="settings_title">设置</string>
+    <string name="label_api_key">云端视觉 API Key</string>
+    <string name="hint_api_key">粘贴你的 OpenAI / 兼容服务 Key</string>
+    <string name="label_api_base">API Base URL（可选）</string>
+    <string name="hint_api_base">留空使用默认 OpenAI</string>
+    <string name="label_model">模型名称</string>
+    <string name="hint_model">如 gpt-4o-mini</string>
+    <string name="btn_save_settings">保存设置</string>
+    <string name="settings_saved">设置已保存</string>
+    <string name="btn_clear_history">清空历史记录</string>
+    <string name="warn_no_key">未配置 API Key，无法进行分析</string>
+
+    <!-- History -->
+    <string name="history_title">分析历史</string>
+    <string name="history_empty">还没有分析记录</string>
+
+    <!-- Common -->
+    <string name="analyzing">分析中…</string>
+    <string name="error_no_image">请先选择图片</string>
+    <string name="error_generic">分析失败，请检查网络与 API Key</string>
+    <string name="permission_required">需要相机/相册权限才能使用此功能</string>
+</resources>

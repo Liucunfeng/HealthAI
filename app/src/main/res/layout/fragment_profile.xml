@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:text="@string/profile_title"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:hint="@string/label_height">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_height"
+                android:inputType="numberDecimal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/label_weight">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_weight"
+                android:inputType="numberDecimal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/label_age">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_age"
+                android:inputType="number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:text="@string/label_gender"
+            android:layout_marginTop="16dp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <RadioGroup
+            android:id="@+id/rg_gender"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rb_male" android:text="@string/gender_male" />
+            <RadioButton android:id="@+id/rb_female" android:text="@string/gender_female" />
+        </RadioGroup>
+
+        <TextView
+            android:text="@string/label_goal"
+            android:layout_marginTop="12dp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <RadioGroup
+            android:id="@+id/rg_goal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rb_lose" android:text="@string/goal_lose" />
+            <RadioButton android:id="@+id/rb_maintain" android:text="@string/goal_maintain" />
+            <RadioButton android:id="@+id/rb_gain" android:text="@string/goal_gain" />
+        </RadioGroup>
+
+        <TextView
+            android:text="@string/label_activity"
+            android:layout_marginTop="12dp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <RadioGroup
+            android:id="@+id/rg_activity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <RadioButton android:id="@+id/rb_low" android:text="@string/activity_low" />
+            <RadioButton android:id="@+id/rb_mid" android:text="@string/activity_mid" />
+            <RadioButton android:id="@+id/rb_high" android:text="@string/activity_high" />
+        </RadioGroup>
+
+        <Button
+            android:id="@+id/btn_save_profile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/btn_save_profile" />
+    </LinearLayout>
+</ScrollView>

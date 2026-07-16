@@ -1,0 +1,164 @@
+package com.example.healthai.vision
+
+import com.example.healthai.data.UserProfile
+import com.example.healthai.util.optArray
+import com.example.healthai.util.optFloat
+import com.example.healthai.util.optInt
+import com.example.healthai.util.optString
+import com.google.gson.Gson
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
+import retrofit2.http.Header
+import retrofit2.http.POST
+import java.util.concurrent.TimeUnit
+
+/**
+ * 基于 OpenAI 兼容「视觉对话」接口的实现。
+ * 只要是 OpenAI 兼容服务（如 OpenAI 官方、Azure OpenAI、或自托管兼容网关）
+ * 都能直接用——改 baseUrl / model 即可。
+ */
+class OpenAIVisionAnalyzer(
+    private val apiKey: String,
+    baseUrl: String,
+    private val model: String
+) : VisionAnalyzer {
+
+    private val endpoint = if (baseUrl.isBlank()) {
+        "https://api.openai.com/v1/"
+    } else {
+        if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
+    }
+
+    private val api: OpenAiApi by lazy {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BASIC
+            })
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build()
+        Retrofit.Builder()
+            .baseUrl(endpoint)
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(OpenAiApi::class.java)
+    }
+
+    override suspend fun analyzeBody(imageBase64: String, profile: UserProfile?): BodyAnalysis {
+        val raw = callVision(PromptBuilder.bodyPrompt(profile), imageBase64)
+        return parseBody(raw)
+    }
+
+    override suspend fun analyzeFood(imageBase64: String, profile: UserProfile?): FoodAnalysis {
+        val raw = callVision(PromptBuilder.foodPrompt(profile), imageBase64)
+        return parseFood(raw)
+    }
+
+    private suspend fun callVision(textPrompt: String, imageBase64: String): String {
+        val content = JsonArray().apply {
+            add(JsonObject().apply {
+                addProperty("type", "text")
+                addProperty("text", textPrompt)
+            })
+            add(JsonObject().apply {
+                addProperty("type", "image_url")
+                add("image_url", JsonObject().apply {
+                    addProperty("url", "data:image/jpeg;base64,$imageBase64")
+                })
+            })
+        }
+        val messages = JsonArray().apply {
+            add(JsonObject().apply {
+                addProperty("role", "system")
+                addProperty("content", "你是严谨的健康分析助手，只输出符合要求的 JSON。")
+            })
+            add(JsonObject().apply {
+                addProperty("role", "user")
+                add("content", content)
+            })
+        }
+        val body = JsonObject().apply {
+            addProperty("model", model)
+            add("messages", messages)
+            add("response_format", JsonObject().apply { addProperty("type", "json_object") })
+            addProperty("temperature", 0.4)
+        }
+
+        val resp = api.chat("Bearer $apiKey", body)
+
+        if (resp.has("error")) {
+            val msg = resp.getAsJsonObject("error").optString("message")
+            throw RuntimeException("视觉 API 返回错误：$msg")
+        }
+
+        return resp.getAsJsonArray("choices")
+            .get(0).asJsonObject
+            .getAsJsonObject("message")
+            .get("content").asString
+    }
+
+    private fun parseBody(json: String): BodyAnalysis {
+        val root = Gson().fromJson(json, JsonObject::class.java)
+        val proportions = root.optArray("proportions").mapNotNull { el ->
+            if (!el.isJsonObject) null
+            else {
+                val m = el.asJsonObject
+                Metric(m.optString("label"), m.optString("value"), m.optString("comment"))
+            }
+        }
+        val advice = root.optArray("advice").mapNotNull { el ->
+            if (el.isJsonPrimitive && el.asJsonPrimitive.isString) el.asString else null
+        }
+        return BodyAnalysis(
+            overall = root.optString("overall"),
+            bodyType = root.optString("bodyType"),
+            proportions = proportions,
+            physique = root.optString("physique"),
+            bodyFatEstimate = root.optString("bodyFatEstimate"),
+            advice = advice
+        )
+    }
+
+    private fun parseFood(json: String): FoodAnalysis {
+        val root = Gson().fromJson(json, JsonObject::class.java)
+        val foods = root.optArray("foods").mapNotNull { el ->
+            if (!el.isJsonObject) null
+            else {
+                val f = el.asJsonObject
+                FoodItem(
+                    name = f.optString("name"),
+                    caloriesKcal = f.optInt("caloriesKcal"),
+                    proteinG = f.optFloat("proteinG"),
+                    carbG = f.optFloat("carbG"),
+                    fatG = f.optFloat("fatG"),
+                    portion = f.optString("portion")
+                )
+            }
+        }
+        return FoodAnalysis(
+            foods = foods,
+            totalCalories = root.optInt("totalCalories"),
+            totalProteinG = root.optFloat("totalProteinG"),
+            totalCarbG = root.optFloat("totalCarbG"),
+            totalFatG = root.optFloat("totalFatG"),
+            suitable = root.optString("suitable"),
+            reason = root.optString("reason"),
+            adjustment = root.optString("adjustment")
+        )
+    }
+
+    private interface OpenAiApi {
+        @POST("chat/completions")
+        suspend fun chat(
+            @Header("Authorization") auth: String,
+            @Body body: JsonObject
+        ): JsonObject
+    }
+}
