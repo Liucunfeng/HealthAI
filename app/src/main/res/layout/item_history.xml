@@ -6,21 +6,43 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <LinearLayout
+        android:id="@+id/ll_thumbs"
+        android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
         <ImageView
-            android:id="@+id/iv_thumb"
-            android:layout_width="64dp"
-            android:layout_height="0dp"
-            app:layout_constraintDimensionRatio="3:4"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            android:id="@+id/iv_thumb_0"
+            android:layout_width="48dp"
+            android:layout_height="64dp"
+            android:layout_marginEnd="4dp"
             android:scaleType="centerCrop"
             android:background="@android:color/darker_gray" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <ImageView
+            android:id="@+id/iv_thumb_1"
+            android:layout_width="48dp"
+            android:layout_height="64dp"
+            android:layout_marginEnd="4dp"
+            android:scaleType="centerCrop"
+            android:background="@android:color/darker_gray" />
+
+        <ImageView
+            android:id="@+id/iv_thumb_2"
+            android:layout_width="48dp"
+            android:layout_height="64dp"
+            android:layout_marginEnd="4dp"
+            android:scaleType="centerCrop"
+            android:background="@android:color/darker_gray" />
+
+        <ImageView
+            android:id="@+id/iv_thumb_3"
+            android:layout_width="48dp"
+            android:layout_height="64dp"
+            android:scaleType="centerCrop"
+            android:background="@android:color/darker_gray" />
+    </LinearLayout>
 
     <LinearLayout
         android:orientation="vertical"

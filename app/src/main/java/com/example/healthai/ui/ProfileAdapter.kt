@@ -10,13 +10,11 @@ import com.example.healthai.databinding.ItemProfileBinding
 
 /**
  * 多人档案列表适配器（R2）。
- * 每个档案项展示名称（空名占位"未命名档案"）、关键指标，并提供
- * 「设为当前 / 编辑 / 删除」操作。当前激活档案的高亮并禁用「设为当前」。
+ * 每个档案项展示名称（空名占位"未命名档案"）、关键指标，并提供「编辑 / 删除」操作。
+ * 当前档案的选择在身材 / 食物页各自完成，本页不再设置「当前」。
  */
 class ProfileAdapter(
     private var items: List<UserProfile>,
-    private var activeId: Long,
-    private val onSetCurrent: (UserProfile) -> Unit,
     private val onEdit: (UserProfile) -> Unit,
     private val onDelete: (UserProfile) -> Unit
 ) : RecyclerView.Adapter<ProfileAdapter.VH>() {
@@ -50,22 +48,13 @@ class ProfileAdapter(
         }
         holder.binding.tvMetrics.text = metrics
 
-        val isActive = p.id == activeId
-        holder.binding.btnSetCurrent.text = if (isActive) {
-            ctx.getString(R.string.profile_current)
-        } else {
-            ctx.getString(R.string.profile_set_current)
-        }
-        holder.binding.btnSetCurrent.isEnabled = !isActive
-        holder.binding.btnSetCurrent.setOnClickListener { onSetCurrent(p) }
         holder.binding.btnEdit.setOnClickListener { onEdit(p) }
         holder.binding.btnDelete.setOnClickListener { onDelete(p) }
     }
 
-    /** 替换数据并刷新（activeId 变化用于高亮当前档案） */
-    fun submit(list: List<UserProfile>, newActiveId: Long) {
+    /** 替换数据并刷新 */
+    fun submit(list: List<UserProfile>) {
         items = list
-        activeId = newActiveId
         notifyDataSetChanged()
     }
 }

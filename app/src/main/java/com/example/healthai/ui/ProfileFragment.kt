@@ -10,7 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.healthai.R
 import com.example.healthai.data.AppDatabase
-import com.example.healthai.data.AppPreferences
 import com.example.healthai.data.UserProfile
 import com.example.healthai.databinding.DialogProfileEditBinding
 import com.example.healthai.databinding.FragmentProfileBinding
@@ -23,7 +22,7 @@ import kotlinx.coroutines.withContext
  * 多人档案管理页（R2）。
  * - 列表展示全部档案，空名显示"未命名档案"；
  * - 新增 / 编辑（最多 10 人，达上限禁用并 Toast）；
- * - 「设为当前」写入 activeProfileId；删除当前激活档案后回退为 0（下次默认首个建档人）。
+ * - 不再设置"当前"档案，分析时由身材 / 食物页各自选择。
  */
 class ProfileFragment : Fragment() {
 
@@ -44,8 +43,6 @@ class ProfileFragment : Fragment() {
         binding.rvProfiles.layoutManager = LinearLayoutManager(requireContext())
         adapter = ProfileAdapter(
             items = emptyList(),
-            activeId = 0L,
-            onSetCurrent = ::onSetCurrent,
             onEdit = ::onEdit,
             onDelete = ::onDelete
         )
@@ -54,22 +51,14 @@ class ProfileFragment : Fragment() {
         loadProfiles()
     }
 
-    /** 载入档案列表，并校正 activeProfileId（不存在则回退首个建档人） */
+    /** 载入档案列表（不再维护"当前"档案，选中在各分析页各自完成） */
     private fun loadProfiles() {
         lifecycleScope.launch {
-            val (list, activeId) = withContext(Dispatchers.IO) {
-                val dao = AppDatabase.get(requireContext()).userProfileDao()
-                val l = dao.getAll()
-                var aid = AppPreferences.getActiveProfileId(requireContext())
-                if (aid != 0L && l.none { it.id == aid }) aid = 0L
-                if (aid == 0L && l.isNotEmpty()) {
-                    AppPreferences.setActiveProfileId(requireContext(), l.first().id)
-                    aid = l.first().id
-                }
-                l to aid
+            val list = withContext(Dispatchers.IO) {
+                AppDatabase.get(requireContext()).userProfileDao().getAll()
             }
-            adapter?.submit(list, activeId)
-            // 10 人上限：禁用新增按钮，保持 Toast 提示
+            adapter?.submit(list)
+            // 10 人上限：禁用新增按钮
             binding.fabAddProfile.isEnabled = list.size < 10
         }
     }
@@ -88,12 +77,6 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun onSetCurrent(p: UserProfile) {
-        AppPreferences.setActiveProfileId(requireContext(), p.id)
-        Toast.makeText(requireContext(), R.string.profile_set_current_toast, Toast.LENGTH_SHORT).show()
-        loadProfiles()
-    }
-
     private fun onEdit(p: UserProfile) {
         openDialog(p)
     }
@@ -105,12 +88,7 @@ class ProfileFragment : Fragment() {
             .setPositiveButton(android.R.string.ok) { _, _ ->
                 lifecycleScope.launch {
                     withContext(Dispatchers.IO) {
-                        val dao = AppDatabase.get(requireContext()).userProfileDao()
-                        dao.delete(p)
-                        if (AppPreferences.getActiveProfileId(requireContext()) == p.id) {
-                            // 删的是当前激活档案 → 回退为 0，下次默认首个建档人
-                            AppPreferences.setActiveProfileId(requireContext(), 0L)
-                        }
+                        AppDatabase.get(requireContext()).userProfileDao().delete(p)
                     }
                     loadProfiles()
                 }
@@ -186,10 +164,6 @@ class ProfileFragment : Fragment() {
                 } else {
                     dao.update(entity)
                     existing.id
-                }
-                if (AppPreferences.getActiveProfileId(requireContext()) == 0L) {
-                    // 首次建档 / 当前无激活档案时，自动设为当前
-                    AppPreferences.setActiveProfileId(requireContext(), id)
                 }
             }
             Toast.makeText(requireContext(), R.string.profile_saved, Toast.LENGTH_SHORT).show()

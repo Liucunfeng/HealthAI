@@ -52,7 +52,7 @@
     <string name="profile_edit">编辑档案</string>
     <string name="profile_delete">删除档案</string>
     <string name="profile_delete_title">删除档案</string>
-    <string name="profile_delete_msg">确定删除该档案吗？删除当前激活档案后会回退为通用建议。</string>
+    <string name="profile_delete_msg">确定删除该档案吗？删除后不影响已有的分析记录。</string>
     <string name="dialog_profile_title_new">新增身体档案</string>
     <string name="dialog_profile_title_edit">编辑身体档案</string>
     <string name="label_profile_name">档案名称（可留空，显示为"未命名档案"）</string>

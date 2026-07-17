@@ -8,6 +8,7 @@ import com.example.healthai.data.AnalysisRecord
 import com.example.healthai.databinding.ItemHistoryBinding
 import com.example.healthai.util.ImageUtils
 import com.example.healthai.util.ResultFormatter
+import com.google.gson.Gson
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -53,13 +54,24 @@ class HistoryAdapter(
 
         // 时间格式化（复用现有格式）
         val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date(item.createdAt))
-        holder.binding.tvMeta.text = time
+        holder.binding.tvMeta.text = buildString {
+            append(time)
+            if (item.profileName.isNotBlank()) append(" · ${item.profileName}")
+        }
         holder.binding.tvType.text = if (item.type == "body") "身材" else "食物"
 
-        // 首图（复用现有 ImageUtils.base64ToBitmap）
-        if (item.imageBase64.isNotBlank()) {
-            val bmp = ImageUtils.base64ToBitmap(item.imageBase64)
-            if (bmp != null) holder.binding.ivThumb.setImageBitmap(bmp)
+        // 最多 4 张缩略图：有图显示，缺图保持灰色色块占位
+        val imgs = imagesOf(item)
+        val thumbs = listOf(
+            holder.binding.ivThumb0,
+            holder.binding.ivThumb1,
+            holder.binding.ivThumb2,
+            holder.binding.ivThumb3
+        )
+        for (i in thumbs.indices) {
+            val b64 = imgs.getOrNull(i)
+            val bmp = if (!b64.isNullOrBlank()) ImageUtils.base64ToBitmap(b64) else null
+            if (bmp != null) thumbs[i].setImageBitmap(bmp) else thumbs[i].setImageDrawable(null)
         }
 
         // 点击内联切换折叠/展开
@@ -67,5 +79,18 @@ class HistoryAdapter(
             expanded[position] = !expanded[position]
             notifyItemChanged(position)
         }
+    }
+
+    /**
+     * 取出该记录的全部图片 base64 列表（最多 4 张）。
+     * 新记录读 imageListJson；旧记录 imageListJson 为空时回退为 imageBase64 首图。
+     */
+    private fun imagesOf(rec: AnalysisRecord): List<String> {
+        if (rec.imageListJson.isNotBlank()) {
+            runCatching {
+                Gson().fromJson(rec.imageListJson, Array<String>::class.java)?.toList()
+            }.getOrNull()?.let { return it }
+        }
+        return if (rec.imageBase64.isNotBlank()) listOf(rec.imageBase64) else emptyList()
     }
 }

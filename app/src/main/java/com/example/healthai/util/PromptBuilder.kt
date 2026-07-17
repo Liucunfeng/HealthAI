@@ -22,6 +22,7 @@ object PromptBuilder {
         val bmi = profile.bmi()?.let { "BMI 约 %.1f".format(it) } ?: ""
         return """
             用户身体档案：
+            - 姓名：${profile.name.ifBlank { "未命名档案" }}
             - 性别：${if (profile.gender == "male") "男" else "女"}
             - 年龄：${profile.age}
             - 身高：${profile.heightCm} cm

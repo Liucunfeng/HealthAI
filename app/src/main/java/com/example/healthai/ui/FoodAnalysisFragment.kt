@@ -191,13 +191,16 @@ class FoodAnalysisFragment : Fragment() {
                 }
                 val display = ResultFormatter.formatFood(result)
                 binding.tvFoodResult.text = display
+                val profileName = profile?.name ?: ""
                 val rec = AnalysisRecord(
                     type = "food",
                     createdAt = System.currentTimeMillis(),
                     imageBase64 = selectedBase64.first(),
+                    imageListJson = Gson().toJson(selectedBase64),
                     summary = result.foods.joinToString("、") { it.name },
                     detailJson = Gson().toJson(result),
-                    displayText = display
+                    displayText = display,
+                    profileName = profileName
                 )
                 withContext(Dispatchers.IO) {
                     AppDatabase.get(requireContext()).analysisRecordDao().insert(rec)

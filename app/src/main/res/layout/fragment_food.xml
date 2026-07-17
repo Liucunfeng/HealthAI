@@ -34,6 +34,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/layout_profile"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -43,9 +44,7 @@
                 android:id="@+id/auto_profile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="none"
-                android:focusable="false"
-                android:cursorVisible="false" />
+                android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
