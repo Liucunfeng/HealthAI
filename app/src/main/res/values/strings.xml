@@ -10,7 +10,7 @@
 
     <!-- Body analysis -->
     <string name="body_title">身材比例与体质分析</string>
-    <string name="hint_take_photo">拍摄或上传一张全身照</string>
+    <string name="hint_take_photo">拍摄或上传最多 4 张照片（可联合分析）</string>
     <string name="btn_capture">拍照</string>
     <string name="btn_pick">从相册选择</string>
     <string name="btn_analyze">分析身材</string>
@@ -41,6 +41,31 @@
     <string name="profile_saved">档案已保存</string>
     <string name="profile_empty">请先填写身体档案，分析结果会更准确</string>
 
+    <!-- Profile management (R2) -->
+    <string name="btn_add_profile">新增档案</string>
+    <string name="unnamed_profile">未命名档案</string>
+    <string name="profile_generic">通用建议（不指定）</string>
+    <string name="profile_current">当前</string>
+    <string name="profile_set_current">设为当前</string>
+    <string name="profile_set_current_toast">已设为当前档案</string>
+    <string name="profile_count_limit">最多只能创建 10 个档案</string>
+    <string name="profile_edit">编辑档案</string>
+    <string name="profile_delete">删除档案</string>
+    <string name="profile_delete_title">删除档案</string>
+    <string name="profile_delete_msg">确定删除该档案吗？删除当前激活档案后会回退为通用建议。</string>
+    <string name="dialog_profile_title_new">新增身体档案</string>
+    <string name="dialog_profile_title_edit">编辑身体档案</string>
+    <string name="label_profile_name">档案名称（可留空，显示为"未命名档案"）</string>
+
+    <!-- Analysis page profile selector (R2) -->
+    <string name="label_select_profile">分析使用的身体档案</string>
+
+    <!-- Multi-image (R1) -->
+    <string name="add_image">＋</string>
+    <string name="remove_image">移除这张图片</string>
+    <string name="max_images">最多只能选择 4 张图片</string>
+    <string name="error_image_load">图片加载失败，请重试</string>
+
     <!-- Settings -->
     <string name="settings_title">设置</string>
     <string name="label_api_key">云端视觉 API Key</string>
@@ -53,6 +78,7 @@
     <string name="settings_saved">设置已保存</string>
     <string name="btn_clear_history">清空历史记录</string>
     <string name="warn_no_key">未配置 API Key，无法进行分析</string>
+    <string name="signature">APP开发者：刘乐清 - 大境初级中学</string>
 
     <!-- History -->
     <string name="history_title">分析历史</string>

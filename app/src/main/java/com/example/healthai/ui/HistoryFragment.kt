@@ -4,18 +4,22 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.healthai.data.AnalysisRecord
 import com.example.healthai.data.AppDatabase
 import com.example.healthai.databinding.FragmentHistoryBinding
+import com.example.healthai.util.ResultFormatter
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * 分析历史列表（R4 历史净化）。
+ * 卡片与详情均统一消费 ResultFormatter.displayTextFor，旧记录（displayText 为空）
+ * 自动回退为可读中文，不再直接展示原始 JSON。
+ */
 class HistoryFragment : Fragment() {
 
     private var _binding: FragmentHistoryBinding? = null
@@ -49,11 +53,12 @@ class HistoryFragment : Fragment() {
         }
     }
 
-    private fun showDetail(rec: AnalysisRecord) {
+    /** 详情弹窗展示可读中文（displayText 优先，旧记录回退） */
+    private fun showDetail(rec: com.example.healthai.data.AnalysisRecord) {
         val title = if (rec.type == "body") "身材分析详情" else "食物分析详情"
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(title)
-            .setMessage(rec.detailJson)
+            .setMessage(ResultFormatter.displayTextFor(rec))
             .setPositiveButton(android.R.string.ok, null)
             .show()
     }

@@ -1,0 +1,133 @@
+%% ===== 时序图 1：多图分析流程（以身材页为例，食物页同理）=====
+sequenceDiagram
+    autonumber
+    actor U as 用户
+    participant F as BodyAnalysisFragment
+    participant IU as ImageUtils
+    participant AP as AppPreferences
+    participant PD as UserProfileDao
+    participant VF as VisionAnalyzerFactory
+    participant AZ as OpenAIVisionAnalyzer
+    participant PB as PromptBuilder
+    participant RF as ResultFormatter
+    participant RD as AnalysisRecordDao
+
+    U->>F: 拍照/选图（最多4张，逐张）
+    loop 每张图片
+        F->>IU: uriToCompressedBase64(uri)
+        IU-->>F: base64 字符串
+        F->>F: selectedImages.add(base64)<br/>selectedUris.add(uri)
+    end
+    U->>F: 点击「分析身材」
+
+    alt selectedImages 为空 或 未配置 API Key
+        F-->>U: Toast 提示（复用现有文案）
+    else 正常分析
+        F->>AP: getActiveProfileId()
+        AP-->>F: activeId (Long)
+        F->>PD: getById(activeId)  [activeId!=0]
+        PD-->>F: UserProfile?  (无则取首个/或 null)
+        F->>VF: create(context)
+        VF-->>F: VisionAnalyzer?
+        F->>AZ: analyzeBody(selectedImages, profile)
+
+        AZ->>PB: bodyPrompt(profile, selectedImages.size)
+        PB-->>AZ: 多图版提示词（综合 N 张判断）
+        AZ->>AZ: callVision(prompt, selectedImages)
+        Note right of AZ: 为每张图拼接一个<br/>image_url content block<br/>readTimeout=120s
+        AZ->>AZ: parseBody(rawJson)
+        AZ-->>F: BodyAnalysis
+
+        F->>RF: formatBody(result)
+        RF-->>F: displayText（可读中文）
+        F->>F: tvResult.text = displayText
+        F->>F: 构造 AnalysisRecord(<br/>imageBase64=selectedImages[0],<br/>detailJson=Gson(result),<br/>displayText=displayText)
+        F->>RD: insert(rec)
+        RD-->>F: 入库完成
+    end
+
+%% ===== 时序图 2：分析页选人 → 分析（profile 解析链）=====
+sequenceDiagram
+    autonumber
+    actor U as 用户
+    participant F as BodyAnalysisFragment
+    participant AP as AppPreferences
+    participant PD as UserProfileDao
+
+    Note over F: onViewCreated 初始化档案下拉
+    F->>PD: getAll()  (ProfileFragment 同机制)
+    PD-->>F: List<UserProfile>)
+    F->>AP: getActiveProfileId()
+    AP-->>F: activeId
+    alt activeId!=0 且该人存在
+        F->>F: 下拉默认选中 activeId
+    else activeId==0 且有人建档
+        F->>AP: setActiveProfileId(firstId)  (默认选第一个建档人)
+        F->>F: 下拉默认选中 firstId
+    else 无人建档
+        F->>F: 下拉默认「通用建议（不指定）」→ profile=null
+    end
+    U->>F: 在下拉中选择某人 / 保持通用
+    U->>F: 分析（见时序图1）
+
+%% ===== 时序图 3：历史净化（列表 & 详情统一回退）=====
+sequenceDiagram
+    autonumber
+    actor U as 用户
+    participant HF as HistoryFragment
+    participant AD as HistoryAdapter
+    participant RD as AnalysisRecordDao
+    participant RF as ResultFormatter
+
+    HF->>RD: getAll()
+    RD-->>HF: List(AnalysisRecord)
+    HF->>AD: 绑定 list
+    loop 每条记录
+        AD->>RF: displayTextFor(rec)
+        alt rec.displayText 非空
+            RF-->>AD: 直接返回 displayText
+        else rec.displayText 为空（旧记录）
+            RF->>RF: formatFromDetail(rec.type, rec.detailJson)
+            Note right of RF: 用 Gson 解析 detailJson →<br/>BodyAnalysis/FoodAnalysis<br/>→ formatBody/formatFood
+            RF-->>AD: 可读中文
+        end
+        AD-->>U: 卡片展示可读中文（原 {} : " 已去除）
+    end
+    U->>HF: 点击某条 → showDetail
+    HF->>RF: displayTextFor(rec)
+    RF-->>HF: 可读中文
+    HF-->>U: MaterialAlertDialog 展示（替代原 raw detailJson）
+
+%% ===== 时序图 4：多人档案管理（ProfileFragment 重写）=====
+sequenceDiagram
+    autonumber
+    actor U as 用户
+    participant PF as ProfileFragment
+    participant AD as ProfileAdapter
+    participant PD as UserProfileDao
+    participant AP as AppPreferences
+
+    PF->>PD: getAll()
+    PD-->>PF: List(UserProfile)
+    PF->>AD: 绑定列表
+    alt 列表为空 且 activeId==0
+        PF-->>U: 提示「请先填写身体档案」
+    end
+    U->>PF: 点击「新增」
+    PF->>PD: count()
+    PD-->>PF: n
+    alt n >= 10
+        PF-->>U: Toast「已达 10 人上限」
+    else n < 10
+        PF-->>U: 弹出编辑对话框（name + 身高/体重/年龄/性别/目标/活动）
+        U->>PF: 填写并确认
+        PF->>PD: insert(profile)
+        PF->>AP: 若 activeId==0 → setActiveProfileId(newId)
+    end
+    U->>AD: 点击「设为当前」
+    AD->>PF: onSelectActive(id)
+    PF->>AP: setActiveProfileId(id)
+    U->>AD: 点击删除
+    AD->>PF: onDelete(profile)
+    PF->>PD: delete(profile)
+    PF->>PF: 若删的是 active → activeId=0（下次默认首个）

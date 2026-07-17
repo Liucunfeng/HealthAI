@@ -8,10 +8,11 @@ import androidx.room.Query
 
 /**
  * 一次分析的归档记录。
- * @param type      "body" 身材分析 / "food" 食物分析
- * @param imageBase64 缩略图（base64，便于在历史列表里直接预览）
- * @param summary   一句话摘要
- * @param detailJson 完整结构化结果（JSON 字符串），点击后可展开查看
+ * @param type        "body" 身材分析 / "food" 食物分析
+ * @param imageBase64 缩略图（base64，便于在历史列表里直接预览；多图时取首图）
+ * @param summary     一句话摘要
+ * @param detailJson  完整结构化结果（JSON 字符串），旧记录回退时使用
+ * @param displayText 可读中文结果（新记录写入；为空时历史页回退 ResultFormatter）
  */
 @Entity(tableName = "analysis_records")
 data class AnalysisRecord(
@@ -20,7 +21,8 @@ data class AnalysisRecord(
     val createdAt: Long,
     val imageBase64: String = "",
     val summary: String = "",
-    val detailJson: String = ""
+    val detailJson: String = "",
+    val displayText: String = ""
 )
 
 @Dao

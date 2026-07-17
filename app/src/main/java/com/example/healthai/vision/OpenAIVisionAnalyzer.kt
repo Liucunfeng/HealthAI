@@ -23,6 +23,9 @@ import java.util.concurrent.TimeUnit
  * 基于 OpenAI 兼容「视觉对话」接口的实现。
  * 只要是 OpenAI 兼容服务（如 OpenAI 官方、Azure OpenAI、或自托管兼容网关）
  * 都能直接用——改 baseUrl / model 即可。
+ *
+ * R1 多图分析：analyzeBody / analyzeFood 接受图片列表；callVision 为每张图
+ * 各拼一个 image_url content block，text block 仅 1 个（在首部）。
  */
 class OpenAIVisionAnalyzer(
     private val apiKey: String,
@@ -58,7 +61,7 @@ class OpenAIVisionAnalyzer(
                 level = HttpLoggingInterceptor.Level.BASIC
             })
             .connectTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(90, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .build()
         Retrofit.Builder()
@@ -69,28 +72,35 @@ class OpenAIVisionAnalyzer(
             .create(OpenAiApi::class.java)
     }
 
-    override suspend fun analyzeBody(imageBase64: String, profile: UserProfile?): BodyAnalysis {
-        val raw = callVision(PromptBuilder.bodyPrompt(profile), imageBase64)
+    override suspend fun analyzeBody(images: List<String>, profile: UserProfile?): BodyAnalysis {
+        val raw = callVision(PromptBuilder.bodyPrompt(profile, images.size), images)
         return parseBody(raw)
     }
 
-    override suspend fun analyzeFood(imageBase64: String, profile: UserProfile?): FoodAnalysis {
-        val raw = callVision(PromptBuilder.foodPrompt(profile), imageBase64)
+    override suspend fun analyzeFood(images: List<String>, profile: UserProfile?): FoodAnalysis {
+        val raw = callVision(PromptBuilder.foodPrompt(profile, images.size), images)
         return parseFood(raw)
     }
 
-    private suspend fun callVision(textPrompt: String, imageBase64: String): String {
+    /**
+     * 调用视觉接口。构建 1 个 text block + 对每张图各 1 个 image_url block。
+     * @param textPrompt 提示词（单张/多张版）
+     * @param images     压缩后的 base64 JPEG 列表（最多 4 张）
+     */
+    private suspend fun callVision(textPrompt: String, images: List<String>): String {
         val content = JsonArray().apply {
             add(JsonObject().apply {
                 addProperty("type", "text")
                 addProperty("text", textPrompt)
             })
-            add(JsonObject().apply {
-                addProperty("type", "image_url")
-                add("image_url", JsonObject().apply {
-                    addProperty("url", "data:image/jpeg;base64,$imageBase64")
+            images.forEach { b64 ->
+                add(JsonObject().apply {
+                    addProperty("type", "image_url")
+                    add("image_url", JsonObject().apply {
+                        addProperty("url", "data:image/jpeg;base64,$b64")
+                    })
                 })
-            })
+            }
         }
         val messages = JsonArray().apply {
             add(JsonObject().apply {

@@ -19,16 +19,19 @@ import com.example.healthai.data.UserProfile
  *    - 再用本地营养表换算热量与宏量营养。
  *    这条路不需要大模型，但工程量大、识别范围有限。
  *
- * 这里保留接口契约，默认抛出未实现异常，方便你后续填充真实逻辑。
+ * 这里保留接口契约（R1 多图版签名）：默认抛出未实现异常，方便你后续填充真实逻辑。
+ * 多图时暂取 images.firstOrNull() 占位，确保整体编译通过。
  */
 class TencentVisionAnalyzer : VisionAnalyzer {
-    override suspend fun analyzeBody(imageBase64: String, profile: UserProfile?): BodyAnalysis {
+    override suspend fun analyzeBody(images: List<String>, profile: UserProfile?): BodyAnalysis {
+        images.firstOrNull()
         throw UnsupportedOperationException(
             "腾讯云视觉适配器尚未实现，请参考 TencentVisionAnalyzer.kt 顶部注释接入。"
         )
     }
 
-    override suspend fun analyzeFood(imageBase64: String, profile: UserProfile?): FoodAnalysis {
+    override suspend fun analyzeFood(images: List<String>, profile: UserProfile?): FoodAnalysis {
+        images.firstOrNull()
         throw UnsupportedOperationException(
             "腾讯云视觉适配器尚未实现，请参考 TencentVisionAnalyzer.kt 顶部注释接入。"
         )

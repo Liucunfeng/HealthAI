@@ -6,6 +6,9 @@ import com.example.healthai.data.UserProfile
  * 构造发给视觉大模型的提示词。
  * 关键约束：要求模型只返回纯 JSON（response_format=json_object），
  * 字段严格对应 vision/models.kt 中的结构体，方便后续解析。
+ *
+ * R1 多图分析：bodyPrompt / foodPrompt 新增 imageCount 参数，
+ * 多图时提示模型"综合多张照片联合判断"。
  */
 object PromptBuilder {
 
@@ -29,8 +32,16 @@ object PromptBuilder {
         """.trimIndent()
     }
 
-    fun bodyPrompt(profile: UserProfile?): String = """
-        你是一位专业的体姿与体质评估专家。请根据这张照片评估人物的身材比例与体质。
+    fun bodyPrompt(profile: UserProfile?, imageCount: Int = 1): String {
+        val multiHint = if (imageCount > 1) {
+            "你收到了 ${imageCount} 张照片，请综合这 ${imageCount} 张照片联合判断，得出最一致、最准确的结论，不要只依据单张照片。"
+        } else {
+            ""
+        }
+        val photoDesc = if (imageCount > 1) "这 ${imageCount} 张照片" else "这张照片"
+        return """
+        你是一位专业的体姿与体质评估专家。请根据$photoDesc评估人物的身材比例与体质。
+        $multiHint
         ${profileBlock(profile)}
 
         请只返回一个 JSON 对象，不要包含任何额外文字、不要使用 markdown 代码块。结构如下：
@@ -45,10 +56,19 @@ object PromptBuilder {
           "advice": ["建议1", "建议2", "建议3"]
         }
     """.trimIndent()
+    }
 
-    fun foodPrompt(profile: UserProfile?): String = """
-        你是一位注册营养师。请识别这张照片中的食物，估算每种食物的营养与热量，
+    fun foodPrompt(profile: UserProfile?, imageCount: Int = 1): String {
+        val multiHint = if (imageCount > 1) {
+            "你收到了 ${imageCount} 张照片，请综合这 ${imageCount} 张照片联合判断，得出最一致、最准确的结论，不要只依据单张照片。"
+        } else {
+            ""
+        }
+        val photoDesc = if (imageCount > 1) "这 ${imageCount} 张照片" else "这张照片"
+        return """
+        你是一位注册营养师。请识别$photoDesc中的食物，估算每种食物的营养与热量，
         并结合用户档案判断这道/这餐食物是否适合吃。
+        $multiHint
         ${profileBlock(profile)}
 
         请只返回一个 JSON 对象，不要包含任何额外文字、不要使用 markdown 代码块。结构如下：
@@ -65,4 +85,5 @@ object PromptBuilder {
           "adjustment": "如果不合适或需要优化，给出具体调整建议（替换、减量、搭配、进餐顺序等）"
         }
     """.trimIndent()
+    }
 }
