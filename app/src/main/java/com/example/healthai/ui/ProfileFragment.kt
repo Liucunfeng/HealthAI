@@ -69,6 +69,8 @@ class ProfileFragment : Fragment() {
                 l to aid
             }
             adapter?.submit(list, activeId)
+            // 10 人上限：禁用新增按钮，保持 Toast 提示
+            binding.fabAddProfile.isEnabled = list.size < 10
         }
     }
 
@@ -79,6 +81,7 @@ class ProfileFragment : Fragment() {
             }
             if (count >= 10) {
                 Toast.makeText(requireContext(), R.string.profile_count_limit, Toast.LENGTH_SHORT).show()
+                binding.fabAddProfile.isEnabled = false
                 return@launch
             }
             openDialog(null)
