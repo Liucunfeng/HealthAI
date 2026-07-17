@@ -1,24 +1,10 @@
 classDiagram
     %% ===== 图例 =====
-    note "【新增】= 本次新建文件/类   【修改】= 在现有文件上增量改动" as Legend
+    note "【不变】= 字段/接口本次不改动   【修改】= 仅局部逻辑增量" as Legend
 
-    %% ===== 数据层（data）=====
-    class UserProfile {
-        <<修改>>
-        +Long id
-        +String name
-        +Float heightCm
-        +Float weightKg
-        +Int age
-        +String gender
-        +String goal
-        +String activity
-        +Boolean isEmpty()
-        +Float bmi()
-    }
-
+    %% ===== 数据层（确认不变）=====
     class AnalysisRecord {
-        <<修改>>
+        <<不变>>
         +Long id
         +String type
         +Long createdAt
@@ -27,195 +13,74 @@ classDiagram
         +String detailJson
         +String displayText
     }
-
-    class UserProfileDao {
-        <<修改>>
-        +suspend List~UserProfile~ getAll()
-        +suspend UserProfile getById(Long id)
-        +suspend Long insert(UserProfile)
-        +suspend Unit update(UserProfile)
-        +suspend Unit delete(UserProfile)
-        +suspend Int count()
-    }
-
-    class AnalysisRecordDao {
+    class UserProfile {
         <<不变>>
-        +suspend List~AnalysisRecord~ getAll()
-        +suspend List~AnalysisRecord~ getByType(String)
-        +suspend Long insert(AnalysisRecord)
-        +suspend Unit clear()
+        +Long id
+        +String name
+        +Float heightCm
+        +Float weightKg
+        +Int age
+        +String gender
+        +String goal
+        +String activity
     }
 
-    class AppDatabase {
+    %% ===== UI 层（本次增量）=====
+    class HistoryAdapter {
         <<修改>>
-        +version = 2
-        +UserProfileDao userProfileDao()
-        +AnalysisRecordDao analysisRecordDao()
-        +Migration MIGRATION_1_2
-    }
-
-    UserProfileDao "1" --> "0..*" UserProfile : 管理
-    AnalysisRecordDao "1" --> "0..*" AnalysisRecord : 管理
-    AppDatabase "1" *-- "1" UserProfileDao
-    AppDatabase "1" *-- "1" AnalysisRecordDao
-
-    %% ===== 视觉分析层（vision）=====
-    class VisionAnalyzer {
-        <<修改 接口>>
-        +suspend BodyAnalysis analyzeBody(List~String~ images, UserProfile? profile)
-        +suspend FoodAnalysis analyzeFood(List~String~ images, UserProfile? profile)
-    }
-    class OpenAIVisionAnalyzer {
-        <<修改>>
-        +suspend BodyAnalysis analyzeBody(List~String~, UserProfile?)
-        +suspend FoodAnalysis analyzeFood(List~String~, UserProfile?)
-        -String callVision(String prompt, List~String~ images)
-        -BodyAnalysis parseBody(String)
-        -FoodAnalysis parseFood(String)
-        -String sanitizeJson(String)
-    }
-    class TencentVisionAnalyzer {
-        <<修改 占位>>
-        +suspend BodyAnalysis analyzeBody(List~String~, UserProfile?)
-        +suspend FoodAnalysis analyzeFood(List~String~, UserProfile?)
-    }
-    class VisionAnalyzerFactory {
-        <<不变>>
-        +VisionAnalyzer? create(Context)
-    }
-    class PromptBuilder {
-        <<修改>>
-        +String profileBlock(UserProfile?)
-        +String bodyPrompt(UserProfile? profile, Int imageCount)
-        +String foodPrompt(UserProfile? profile, Int imageCount)
-    }
-    class BodyAnalysis {
-        <<不变>>
-        +String overall
-        +String bodyType
-        +List~Metric~ proportions
-        +String physique
-        +String bodyFatEstimate
-        +List~String~ advice
-    }
-    class FoodAnalysis {
-        <<不变>>
-        +List~FoodItem~ foods
-        +Int totalCalories
-        +Float totalProteinG
-        +Float totalCarbG
-        +Float totalFatG
-        +String suitable
-        +String reason
-        +String adjustment
-    }
-    class Metric { <<不变>> +String label +String value +String comment }
-    class FoodItem { <<不变>> +String name +Int caloriesKcal +Float proteinG +Float carbG +Float fatG +String portion }
-
-    VisionAnalyzer <|.. OpenAIVisionAnalyzer : 实现
-    VisionAnalyzer <|.. TencentVisionAnalyzer : 实现
-    OpenAIVisionAnalyzer ..> PromptBuilder : 调用
-    OpenAIVisionAnalyzer ..> BodyAnalysis : 产出
-    OpenAIVisionAnalyzer ..> FoodAnalysis : 产出
-    VisionAnalyzerFactory ..> VisionAnalyzer : 产出
-    BodyAnalysis "1" *-- "0..*" Metric
-    FoodAnalysis "1" *-- "0..*" FoodItem
-
-    %% ===== 工具层（util）=====
-    class ResultFormatter {
-        <<新增>>
-        +String formatBody(BodyAnalysis r)
-        +String formatFood(FoodAnalysis r)
-        +String formatFromDetail(String type, String detailJson)
-        +String displayTextFor(AnalysisRecord rec)
-    }
-    class ImageUtils {
-        <<不变>>
-        +String uriToCompressedBase64(Context, Uri, Int, Int)
-        +Bitmap base64ToBitmap(String)
-    }
-    class AppPreferences {
-        <<修改 单例>>
-        +String getApiKey(Context)
-        +String getApiBase(Context)
-        +String getModel(Context)
-        +Long getActiveProfileId(Context)
-        +Unit setActiveProfileId(Context, Long)
-    }
-
-    ResultFormatter ..> BodyAnalysis : 格式化
-    ResultFormatter ..> FoodAnalysis : 格式化
-    ResultFormatter ..> AnalysisRecord : 读取displayText/回退
-
-    %% ===== UI 层（ui）=====
-    class BodyAnalysisFragment {
-        <<修改>>
-        -List~String~ selectedImages
-        -List~Uri~ selectedUris
-        -Long selectedProfileId
-        +analyze()
-        +showResult(BodyAnalysis)
-    }
-    class FoodAnalysisFragment {
-        <<修改>>
-        -List~String~ selectedImages
-        -List~Uri~ selectedUris
-        -Long selectedProfileId
-        +analyze()
-        +showResult(FoodAnalysis)
-    }
-    class ProfileFragment {
-        <<重写>>
-        +loadProfiles()
-        +showEditDialog(UserProfile?)
-        +onSelectActive(Long)
-        +onDelete(UserProfile)
-    }
-    class ProfileAdapter {
-        <<新增>>
-        +onBind(List~UserProfile~)
-        +onSelectActive(Long)
-        +onEdit(UserProfile)
-        +onDelete(UserProfile)
+        -List~AnalysisRecord~ items
+        -MutableList~Boolean~ expanded
+        +onCreateViewHolder() : VH
+        +onBindViewHolder(holder, pos)
+        +getItemCount() : Int
+        -toggle(pos)
     }
     class HistoryFragment {
         <<修改>>
-        +showDetail(AnalysisRecord)
+        +load()
+        -showDetail()  %% 本次移除
     }
-    class HistoryAdapter {
-        <<修改>>
-        +onBind(AnalysisRecord)
+    class BodyAnalysisFragment {
+        <<不变（仅 R2 验收）>>
+        -Long selectedProfileId
+        +loadProfilesAndSetupDropdown()
     }
-    class SettingsFragment {
-        <<修改>>
-        +onViewCreated(View)
+    class FoodAnalysisFragment {
+        <<不变（仅 R2 验收）>>
+        -Long selectedProfileId
+        +loadProfilesAndSetupDropdown()
     }
-    class MainActivity {
+    class ProfileFragment {
         <<不变>>
-        +onCreate(Bundle)
+        +openDialog(UserProfile?)
     }
 
-    BodyAnalysisFragment ..> VisionAnalyzerFactory : 创建分析器
-    BodyAnalysisFragment ..> ResultFormatter : 格式化/入库
-    BodyAnalysisFragment ..> AppPreferences : 读activeProfileId
-    FoodAnalysisFragment ..> VisionAnalyzerFactory : 创建分析器
-    FoodAnalysisFragment ..> ResultFormatter : 格式化/入库
-    FoodAnalysisFragment ..> AppPreferences : 读activeProfileId
-    ProfileFragment ..> ProfileAdapter : 绑定列表
-    ProfileFragment ..> AppPreferences : 写activeProfileId
-    HistoryFragment ..> HistoryAdapter : 绑定
-    HistoryFragment ..> ResultFormatter : 详情回退格式化
-    HistoryAdapter ..> ResultFormatter : 卡片展示
-    MainActivity ..> BodyAnalysisFragment
-    MainActivity ..> FoodAnalysisFragment
-    MainActivity ..> ProfileFragment
-    MainActivity ..> HistoryFragment
-    MainActivity ..> SettingsFragment
+    %% ===== 工具层（不变，仅被引用）=====
+    class ResultFormatter {
+        <<不变>>
+        +String displayTextFor(AnalysisRecord rec)
+        +String formatBody(BodyAnalysis r)
+        +String formatFood(FoodAnalysis r)
+    }
+    class AppPreferences {
+        <<不变>>
+        +Long getActiveProfileId(Context)
+        +Unit setActiveProfileId(Context, Long)
+    }
+    class UserProfileDao {
+        <<不变>>
+        +suspend List~UserProfile~ getAll()
+        +suspend UserProfile getById(Long)
+    }
 
-    %% 跨层关系
-    BodyAnalysisFragment ..> UserProfileDao : 读选中档案
-    FoodAnalysisFragment ..> UserProfileDao : 读选中档案
+    HistoryAdapter --> AnalysisRecord : 读 summary / displayText
+    HistoryAdapter ..> ResultFormatter : displayTextFor 全文
+    HistoryFragment ..> HistoryAdapter : 绑定(无 onClick)
+    BodyAnalysisFragment ..> UserProfileDao : getAll
+    BodyAnalysisFragment ..> AppPreferences : activeProfileId(只读)
+    FoodAnalysisFragment ..> UserProfileDao : getAll
+    FoodAnalysisFragment ..> AppPreferences : activeProfileId(只读)
     ProfileFragment ..> UserProfileDao : 增删改查
-    HistoryFragment ..> AnalysisRecordDao : 读历史
-    BodyAnalysisFragment ..> AnalysisRecordDao : 写记录
-    FoodAnalysisFragment ..> AnalysisRecordDao : 写记录
+    ProfileFragment ..> AppPreferences : 写 activeProfileId
+
+    note for HistoryAdapter "expanded 为适配器内 per-position 状态，\n随 adapter 重建重置，无持久化、不入库"

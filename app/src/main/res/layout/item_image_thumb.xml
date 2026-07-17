@@ -16,7 +16,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="4:3" />
+        app:layout_constraintDimensionRatio="3:4" />
 
     <ImageButton
         android:id="@+id/btn_remove"
@@ -40,5 +40,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintDimensionRatio="4:3" />
+        app:layout_constraintDimensionRatio="3:4" />
 </androidx.constraintlayout.widget.ConstraintLayout>

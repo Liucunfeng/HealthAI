@@ -9,16 +9,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.healthai.data.AppDatabase
 import com.example.healthai.databinding.FragmentHistoryBinding
-import com.example.healthai.util.ResultFormatter
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * 分析历史列表（R4 历史净化）。
- * 卡片与详情均统一消费 ResultFormatter.displayTextFor，旧记录（displayText 为空）
- * 自动回退为可读中文，不再直接展示原始 JSON。
+ * 分析历史列表（R3 折叠展开）。
+ *
+ * 卡片改为内联折叠/展开，统一消费 [com.example.healthai.util.ResultFormatter.displayTextFor]；
+ * 旧记录（displayText 为空）自动回退为可读中文，不再直接展示原始 JSON，也不再弹出详情 Dialog。
  */
 class HistoryFragment : Fragment() {
 
@@ -49,18 +48,8 @@ class HistoryFragment : Fragment() {
                 AppDatabase.get(requireContext()).analysisRecordDao().getAll()
             }
             binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-            binding.rvHistory.adapter = HistoryAdapter(list) { showDetail(it) }
+            binding.rvHistory.adapter = HistoryAdapter(list)
         }
-    }
-
-    /** 详情弹窗展示可读中文（displayText 优先，旧记录回退） */
-    private fun showDetail(rec: com.example.healthai.data.AnalysisRecord) {
-        val title = if (rec.type == "body") "身材分析详情" else "食物分析详情"
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(title)
-            .setMessage(ResultFormatter.displayTextFor(rec))
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
     }
 
     override fun onDestroyView() {
