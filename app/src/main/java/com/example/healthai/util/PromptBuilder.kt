@@ -40,7 +40,7 @@ object PromptBuilder {
         }
         val photoDesc = if (imageCount > 1) "这 ${imageCount} 张照片" else "这张照片"
         return """
-        你是一位专业的体姿与体质评估专家。请根据$photoDesc评估人物的身材比例与体质。
+        你是一位专业的体姿与体质评估专家。请根据${photoDesc}评估人物的身材比例与体质。
         $multiHint
         ${profileBlock(profile)}
 
@@ -66,7 +66,7 @@ object PromptBuilder {
         }
         val photoDesc = if (imageCount > 1) "这 ${imageCount} 张照片" else "这张照片"
         return """
-        你是一位注册营养师。请识别$photoDesc中的食物，估算每种食物的营养与热量，
+        你是一位注册营养师。请识别${photoDesc}中的食物，估算每种食物的营养与热量，
         并结合用户档案判断这道/这餐食物是否适合吃。
         $multiHint
         ${profileBlock(profile)}
