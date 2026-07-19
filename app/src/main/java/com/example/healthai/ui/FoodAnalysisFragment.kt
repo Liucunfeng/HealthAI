@@ -180,6 +180,8 @@ class FoodAnalysisFragment : Fragment() {
         lifecycleScope.launch {
             binding.progressFood.visibility = View.VISIBLE
             binding.btnAnalyzeFood.isEnabled = false
+            // 加载期间隐藏「分析结果将显示在这里」占位，避免与分析中状态混淆
+            binding.tvFoodResult.visibility = View.GONE
             try {
                 val profile = if (selectedProfileId == 0L) null else withContext(Dispatchers.IO) {
                     AppDatabase.get(requireContext()).userProfileDao().getById(selectedProfileId)
@@ -190,6 +192,7 @@ class FoodAnalysisFragment : Fragment() {
                     analyzer.analyzeFood(selectedBase64, profile)
                 }
                 val display = ResultFormatter.formatFood(result)
+                binding.tvFoodResult.visibility = View.VISIBLE
                 binding.tvFoodResult.text = display
                 val profileName = profile?.name ?: ""
                 val rec = AnalysisRecord(

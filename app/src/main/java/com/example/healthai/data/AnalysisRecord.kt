@@ -41,6 +41,9 @@ interface AnalysisRecordDao {
     @Insert
     suspend fun insert(record: AnalysisRecord): Long
 
+    @Query("DELETE FROM analysis_records WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
     @Query("DELETE FROM analysis_records")
     suspend fun clear()
 }

@@ -7,17 +7,19 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.healthai.data.AnalysisRecord
 import com.example.healthai.data.AppDatabase
 import com.example.healthai.databinding.FragmentHistoryBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * 分析历史列表（R3 折叠展开）。
+ * 分析历史列表（R4）。
  *
- * 卡片改为内联折叠/展开，统一消费 [com.example.healthai.util.ResultFormatter.displayTextFor]；
- * 旧记录（displayText 为空）自动回退为可读中文，不再直接展示原始 JSON，也不再弹出详情 Dialog。
+ * - 卡片内联展示四图 + 完整文字结果（详见 [HistoryAdapter]）；
+ * - 支持单条删除：点「删除」→ 确认框 → 删库 → 刷新列表。
  */
 class HistoryFragment : Fragment() {
 
@@ -48,8 +50,25 @@ class HistoryFragment : Fragment() {
                 AppDatabase.get(requireContext()).analysisRecordDao().getAll()
             }
             binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-            binding.rvHistory.adapter = HistoryAdapter(list)
+            binding.rvHistory.adapter = HistoryAdapter(list) { rec -> confirmDelete(rec) }
         }
+    }
+
+    /** 删除前二次确认，避免误删。 */
+    private fun confirmDelete(rec: AnalysisRecord) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.history_delete_title)
+            .setMessage(R.string.history_delete_confirm)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        AppDatabase.get(requireContext()).analysisRecordDao().deleteById(rec.id)
+                    }
+                    load()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     override fun onDestroyView() {

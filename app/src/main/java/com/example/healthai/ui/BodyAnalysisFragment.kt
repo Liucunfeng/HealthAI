@@ -183,6 +183,8 @@ class BodyAnalysisFragment : Fragment() {
         lifecycleScope.launch {
             binding.progress.visibility = View.VISIBLE
             binding.btnAnalyze.isEnabled = false
+            // 加载期间隐藏「分析结果将显示在这里」占位，避免与分析中状态混淆
+            binding.tvResult.visibility = View.GONE
             try {
                 val profile = if (selectedProfileId == 0L) null else withContext(Dispatchers.IO) {
                     AppDatabase.get(requireContext()).userProfileDao().getById(selectedProfileId)
@@ -193,6 +195,7 @@ class BodyAnalysisFragment : Fragment() {
                     analyzer.analyzeBody(selectedBase64, profile)
                 }
                 val display = ResultFormatter.formatBody(result)
+                binding.tvResult.visibility = View.VISIBLE
                 binding.tvResult.text = display
                 val profileName = profile?.name ?: ""
                 val rec = AnalysisRecord(

@@ -83,6 +83,9 @@
     <!-- History -->
     <string name="history_title">分析历史</string>
     <string name="history_empty">还没有分析记录</string>
+    <string name="history_delete">删除</string>
+    <string name="history_delete_title">删除记录</string>
+    <string name="history_delete_confirm">确定删除这条分析记录吗？删除后无法恢复。</string>
 
     <!-- Common -->
     <string name="analyzing">分析中…</string>

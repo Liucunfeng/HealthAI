@@ -14,22 +14,17 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * 历史卡片适配器（R3 折叠展开）。
+ * 历史卡片适配器（R4）。
  *
- * - 折叠态：仅显示 [ItemHistoryBinding.tvSummary]（= [AnalysisRecord.summary] 一句话总体评价）、
- *   时间、类型与朝下的箭头 [ItemHistoryBinding.ivArrow]；[ItemHistoryBinding.tvDetail] 不可见。
- * - 展开态：在折叠态基础上显示 [ItemHistoryBinding.tvDetail]（= [ResultFormatter.displayTextFor]
- *   全文，含首行），箭头旋转 180° 朝上。
- *
- * 点击 itemView 在内部切换 per-position 展开状态并局部刷新（[RecyclerView.Adapter.notifyItemChanged]），
- * 不再回调外部 [com.example.healthai.ui.HistoryFragment.showDetail] 弹窗。
+ * 布局变化（相较 R3）：
+ * - 四张缩略图等宽填充整行（centerCrop 等比放大），不足四张显示纯白色块占位；
+ * - 完整文字分析结果移到四图下方一行、顶格左对齐（不再分右侧文字列/箭头折叠）；
+ * - 每张卡片提供「删除」按钮，点击通过 [onDelete] 回调给 [HistoryFragment] 处理。
  */
 class HistoryAdapter(
-    private val items: List<AnalysisRecord>
+    private val items: List<AnalysisRecord>,
+    private val onDelete: (AnalysisRecord) -> Unit
 ) : RecyclerView.Adapter<HistoryAdapter.VH>() {
-
-    /** 每个位置的展开状态，初始全折叠；随 adapter 重建重置（每次进入历史页默认折叠）。 */
-    private val expanded: MutableList<Boolean> = MutableList(items.size) { false }
 
     class VH(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -42,17 +37,8 @@ class HistoryAdapter(
 
     override fun onBindViewHolder(holder: VH, position: Int) {
         val item = items[position]
-        val isExpanded = expanded[position]
 
-        // 折叠态：one-liner 总体评价（共享约定 #1）
-        holder.binding.tvSummary.text = item.summary
-        // 展开态：完整可读中文（共享约定 #2，允许与 summary 轻微重复）
-        holder.binding.tvDetail.text = ResultFormatter.displayTextFor(item)
-        holder.binding.tvDetail.visibility = if (isExpanded) View.VISIBLE else View.GONE
-        // 箭头旋转：折叠 0°（朝下）/ 展开 180°（朝上）（共享约定 #3）
-        holder.binding.ivArrow.rotation = if (isExpanded) 180f else 0f
-
-        // 时间格式化（复用现有格式）
+        // 时间 + 档案名（顶行左侧）
         val time = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA).format(Date(item.createdAt))
         holder.binding.tvMeta.text = buildString {
             append(time)
@@ -60,7 +46,7 @@ class HistoryAdapter(
         }
         holder.binding.tvType.text = if (item.type == "body") "身材" else "食物"
 
-        // 最多 4 张缩略图：有图显示，缺图保持灰色色块占位
+        // 四张缩略图：有图显示，缺图保持纯白块（背景已在布局中设为白色）
         val imgs = imagesOf(item)
         val thumbs = listOf(
             holder.binding.ivThumb0,
@@ -74,11 +60,11 @@ class HistoryAdapter(
             if (bmp != null) thumbs[i].setImageBitmap(bmp) else thumbs[i].setImageDrawable(null)
         }
 
-        // 点击内联切换折叠/展开
-        holder.itemView.setOnClickListener {
-            expanded[position] = !expanded[position]
-            notifyItemChanged(position)
-        }
+        // 完整文字分析结果：移到四图下方，顶格左对齐
+        holder.binding.tvText.text = ResultFormatter.displayTextFor(item)
+
+        // 删除按钮
+        holder.binding.btnDelete.setOnClickListener { onDelete(item) }
     }
 
     /**
