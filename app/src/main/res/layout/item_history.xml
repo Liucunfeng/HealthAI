@@ -37,7 +37,7 @@
             android:layout_height="wrap_content" />
     </LinearLayout>
 
-    <!-- 四张缩略图：等宽填充整行，比例放大（centerCrop）；不足四张显示纯白色块占位 -->
+    <!-- 四张缩略图：等宽填充整行，比例放大（centerCrop）；不足四张显示透明色块占位 -->
     <LinearLayout
         android:id="@+id/ll_thumbs"
         android:orientation="horizontal"
@@ -52,7 +52,7 @@
             android:layout_weight="1"
             android:layout_marginEnd="4dp"
             android:scaleType="centerCrop"
-            android:background="@android:color/white" />
+            android:background="@drawable/bg_thumb_placeholder" />
 
         <ImageView
             android:id="@+id/iv_thumb_1"
@@ -61,7 +61,7 @@
             android:layout_weight="1"
             android:layout_marginEnd="4dp"
             android:scaleType="centerCrop"
-            android:background="@android:color/white" />
+            android:background="@drawable/bg_thumb_placeholder" />
 
         <ImageView
             android:id="@+id/iv_thumb_2"
@@ -70,7 +70,7 @@
             android:layout_weight="1"
             android:layout_marginEnd="4dp"
             android:scaleType="centerCrop"
-            android:background="@android:color/white" />
+            android:background="@drawable/bg_thumb_placeholder" />
 
         <ImageView
             android:id="@+id/iv_thumb_3"
@@ -78,14 +78,30 @@
             android:layout_height="130dp"
             android:layout_weight="1"
             android:scaleType="centerCrop"
-            android:background="@android:color/white" />
+            android:background="@drawable/bg_thumb_placeholder" />
     </LinearLayout>
 
-    <!-- 文字分析结果：移到四图下方一行，顶格左对齐（与缩略图同左缘，无额外缩进） -->
+    <!-- 文字分析结果：移到四图下方一行，顶格左对齐；仅显示前 5 行，点击查看完整 -->
     <TextView
         android:id="@+id/tv_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:maxLines="5"
+        android:ellipsize="end"
+        android:clickable="true"
+        android:focusable="true"
         android:textSize="14sp" />
+
+    <!-- 点击文字展开完整分析的提示 -->
+    <TextView
+        android:id="@+id/tv_text_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="@string/history_detail_hint"
+        android:textSize="12sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:clickable="true"
+        android:focusable="true" />
 </LinearLayout>

@@ -51,8 +51,18 @@ class HistoryFragment : Fragment() {
                 AppDatabase.get(requireContext()).analysisRecordDao().getAll()
             }
             binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-            binding.rvHistory.adapter = HistoryAdapter(list) { rec -> confirmDelete(rec) }
+            binding.rvHistory.adapter = HistoryAdapter(
+                items = list,
+                onDelete = { rec -> confirmDelete(rec) },
+                onOpenDetail = { title, text -> openDetail(title, text) }
+            )
         }
+    }
+
+    /** 打开全屏详情页，展示完整分析文本。 */
+    private fun openDetail(title: String, text: String) {
+        HistoryDetailDialogFragment.newInstance(title, text)
+            .show(childFragmentManager, "history_detail")
     }
 
     /** 删除前二次确认，避免误删。 */
