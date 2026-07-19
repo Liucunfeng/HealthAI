@@ -67,10 +67,20 @@
             android:text="@string/btn_clear_history" />
 
         <TextView
-            android:id="@+id/tv_signature"
+            android:id="@+id/tv_version"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
+            android:gravity="center"
+            android:textSize="13sp"
+            android:textColor="@android:color/darker_gray"
+            android:text="@string/app_version" />
+
+        <TextView
+            android:id="@+id/tv_signature"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:gravity="center"
             android:textSize="12sp"
             android:textColor="@android:color/darker_gray"

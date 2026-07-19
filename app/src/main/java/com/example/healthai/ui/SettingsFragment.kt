@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.example.healthai.BuildConfig
 import com.example.healthai.R
 import com.example.healthai.data.AppDatabase
 import com.example.healthai.data.AppPreferences
@@ -33,6 +34,9 @@ class SettingsFragment : Fragment() {
         binding.etApiKey.setText(AppPreferences.getApiKey(requireContext()))
         binding.etApiBase.setText(AppPreferences.getApiBase(requireContext()))
         binding.etModel.setText(AppPreferences.getModel(requireContext()))
+
+        // 居中显示软件版本（取自 BuildConfig，始终与 build.gradle 的 versionName 同步）
+        binding.tvVersion.text = getString(R.string.app_version, BuildConfig.VERSION_NAME)
 
         binding.btnSaveSettings.setOnClickListener {
             AppPreferences.setApiKey(requireContext(), binding.etApiKey.text.toString().trim())

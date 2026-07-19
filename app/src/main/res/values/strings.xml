@@ -79,6 +79,7 @@
     <string name="btn_clear_history">清空历史记录</string>
     <string name="warn_no_key">未配置 API Key，无法进行分析</string>
     <string name="signature">APP开发者：刘乐清 - 大境初级中学</string>
+    <string name="app_version">版本 %s</string>
 
     <!-- History -->
     <string name="history_title">分析历史</string>
