@@ -1,5 +1,6 @@
 package com.example.healthai.ui
 
+import com.example.healthai.R
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
